@@ -9,6 +9,9 @@
 #include <QDialog>
 #include <QPushButton>
 
+#include <QMenu>
+#include <QCursor>
+
 enum LCDSHOWTYPE {TIME, WORK, REST};
 
 const int WORKTIMERCOUNT = 25 * 60;
@@ -26,6 +29,9 @@ private:
     void createTimeGroupBox();
     void createTimerGroupBox();
 
+    void contextMenuEvent(QContextMenuEvent *);
+
+private:
     QTimer * timeTimer;
 
     QGroupBox *timeGroupBox;
@@ -39,10 +45,15 @@ private:
 
     int workTimerCount;
     int restTimerCount;
+
+    QAction *setTimeAction;
+
 private slots:
     void showLCD();
     void workTimerButtonEvent(bool checked);
     void restTimerButtonEvent(bool checked);
+
+    void setTimeActionEvent();
 };
 
 #endif // TOMATOTIMER_H

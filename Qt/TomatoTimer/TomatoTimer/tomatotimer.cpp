@@ -7,6 +7,8 @@
 #include <QMessageBox>
 #include <QPalette>
 
+#include <QDebug>
+
 TomatoTimer::TomatoTimer(QWidget *parent)
     : lcdShowFlag(TIME)
     , workTimerCount(WORKTIMERCOUNT)
@@ -20,6 +22,9 @@ TomatoTimer::TomatoTimer(QWidget *parent)
     mainLayout->addWidget(timerGroupBox);
     setLayout(mainLayout);
     
+    setTimeAction = new QAction(tr("SetTime"), this);
+    connect(setTimeAction, SIGNAL(triggered()), this, SLOT(setTimeActionEvent()));
+
     setWindowTitle(tr("Tomato Timer"));
     resize(316, 75);
 }
@@ -54,7 +59,7 @@ void TomatoTimer::createTimerGroupBox()
     workTimerButton->setDefault(true);
     workTimerButton->setCheckable(true);
     connect(workTimerButton, SIGNAL(toggled(bool)), this, SLOT(workTimerButtonEvent(bool)));
-    
+
     restTimerButton = new QPushButton(tr("Start &Rest"));
     restTimerButton->setCheckable(true);
     connect(restTimerButton, SIGNAL(toggled(bool)), this, SLOT(restTimerButtonEvent(bool)));
@@ -131,5 +136,21 @@ void TomatoTimer::restTimerButtonEvent(bool checked)
         lcdShowFlag = TIME;
         restTimerCount = RESTTIMERCOUNT;
     }
+}
+
+void TomatoTimer::contextMenuEvent(QContextMenuEvent *)
+{
+    QMenu *menu = new QMenu(this);
+    menu->addAction(setTimeAction);
+
+    QCursor cur = this->cursor();
+    menu->exec(cur.pos());
+}
+
+void TomatoTimer::setTimeActionEvent()
+{
+    QDialog *setTimeDialog = new QDialog();
+    setTimeDialog->setWindowTitle(tr("Set Time"));
+    setTimeDialog->show();
 }
 
