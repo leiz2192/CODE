@@ -14,8 +14,8 @@
 
 enum LCDSHOWTYPE {TIME, WORK, REST};
 
-const int WORKTIMERCOUNT = 25 * 60;
-const int RESTTIMERCOUNT = 5 * 60;
+const int DEFAULT_WORKTIMERCOUNT = 25 * 60;
+const int DEFAULT_RESTTIMERCOUNT = 5 * 60;
 
 class TomatoTimer : public QDialog
 {
@@ -46,7 +46,13 @@ private:
     int workTimerCount;
     int restTimerCount;
 
+    int RESET_WORKTIMERCOUNT;
+    int RESET_RESTTIMERCOUNT;
+
     QAction *setTimeAction;
+    QComboBox *timeSetSelectType;
+    QLineEdit *lineEdit;
+    QDialog *setTimeDialog;
 
 private slots:
     void showLCD();
@@ -54,6 +60,7 @@ private slots:
     void restTimerButtonEvent(bool checked);
 
     void setTimeActionEvent();
+    void setTimeLineEditEvent();
 };
 
 #endif // TOMATOTIMER_H

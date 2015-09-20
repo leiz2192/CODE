@@ -1,4 +1,5 @@
 #include "tomatotimer.h"
+#include <QDebug>
 
 #include <QTime>
 #include <QTimer>
@@ -6,13 +7,16 @@
 #include <QVBoxLayout>
 #include <QMessageBox>
 #include <QPalette>
-
-#include <QDebug>
+#include <QComboBox>
+#include <QLineEdit>
+#include <QValidator>
 
 TomatoTimer::TomatoTimer(QWidget *parent)
     : lcdShowFlag(TIME)
-    , workTimerCount(WORKTIMERCOUNT)
-    , restTimerCount(RESTTIMERCOUNT)
+    , workTimerCount(DEFAULT_WORKTIMERCOUNT)
+    , restTimerCount(DEFAULT_RESTTIMERCOUNT)
+    , RESET_WORKTIMERCOUNT(DEFAULT_WORKTIMERCOUNT)
+    , RESET_RESTTIMERCOUNT(DEFAULT_RESTTIMERCOUNT)
 {
     createTimeGroupBox();
     createTimerGroupBox();
@@ -24,7 +28,7 @@ TomatoTimer::TomatoTimer(QWidget *parent)
     
     setTimeAction = new QAction(tr("SetTime"), this);
     connect(setTimeAction, SIGNAL(triggered()), this, SLOT(setTimeActionEvent()));
-
+    
     setWindowTitle(tr("Tomato Timer"));
     resize(316, 75);
 }
@@ -110,32 +114,26 @@ void TomatoTimer::showLCD()
 
 void TomatoTimer::workTimerButtonEvent(bool checked)
 {
-    if (checked) {
-        workTimerButton->setText(tr("&Working..."));
-        restTimerButton->setDisabled(true);
-        lcdShowFlag = WORK;
+    if (!checked) {
+        workTimerCount = RESET_WORKTIMERCOUNT;
     }
-    else {
-        workTimerButton->setText(tr("Start &Work"));
-        restTimerButton->setDisabled(false);
-        lcdShowFlag = TIME;
-        workTimerCount = WORKTIMERCOUNT;
-    }
+
+    workTimerButton->setText(tr((checked) ? "&Working..." : "Start &Work"));
+    lcdShowFlag = (checked) ? WORK : TIME;
+    restTimerButton->setDisabled(checked);
+    setTimeAction->setDisabled(checked);
 }
 
 void TomatoTimer::restTimerButtonEvent(bool checked)
 {
-    if (checked) {
-        restTimerButton->setText(tr("&Resting..."));
-        workTimerButton->setDisabled(true);
-        lcdShowFlag = REST;
+    if (! checked) {
+        restTimerCount = RESET_RESTTIMERCOUNT;
     }
-    else {
-        restTimerButton->setText(tr("Start &Rest"));
-        workTimerButton->setDisabled(false);
-        lcdShowFlag = TIME;
-        restTimerCount = RESTTIMERCOUNT;
-    }
+
+    restTimerButton->setText(tr((checked) ? "&Resting..." : "Start &Rest"));
+    lcdShowFlag = (checked) ? REST : TIME;
+    workTimerButton->setDisabled(checked);
+    setTimeAction->setDisabled(checked);
 }
 
 void TomatoTimer::contextMenuEvent(QContextMenuEvent *)
@@ -149,8 +147,46 @@ void TomatoTimer::contextMenuEvent(QContextMenuEvent *)
 
 void TomatoTimer::setTimeActionEvent()
 {
-    QDialog *setTimeDialog = new QDialog();
+    timeSetSelectType = new QComboBox;
+    timeSetSelectType->addItem(tr("Work Time"));
+    timeSetSelectType->addItem(tr("Rest Time"));
+    timeSetSelectType->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+
+    lineEdit = new QLineEdit();
+    QIntValidator *intValidator = new QIntValidator();
+    intValidator->setBottom(0);
+    lineEdit->setValidator(intValidator);
+    connect(lineEdit, SIGNAL(editingFinished()), this, SLOT(setTimeLineEditEvent()));
+
+    QPushButton *button = new QPushButton(tr("OK"));
+    button->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    connect(button, SIGNAL(clicked()), this, SLOT(setTimeLineEditEvent()));
+
+    QHBoxLayout *layout = new QHBoxLayout();
+    layout->addWidget(timeSetSelectType);
+    layout->addWidget(lineEdit);
+    layout->addWidget(button);
+
+    setTimeDialog = new QDialog();
     setTimeDialog->setWindowTitle(tr("Set Time"));
+    setTimeDialog->setLayout(layout);
+
     setTimeDialog->show();
+}
+
+void TomatoTimer::setTimeLineEditEvent()
+{
+    if (lineEdit->text().isEmpty())
+    {
+        workTimerCount = RESET_WORKTIMERCOUNT;
+        restTimerCount = RESET_RESTTIMERCOUNT;
+    } else if (timeSetSelectType->currentText() == "Work Time") {
+        workTimerCount = lineEdit->text().toInt();
+        RESET_WORKTIMERCOUNT = workTimerCount;
+    } else if (timeSetSelectType->currentText() == "Rest Time") {
+        restTimerCount = lineEdit->text().toInt();
+        RESET_RESTTIMERCOUNT = restTimerCount;
+    }
+    setTimeDialog->close();
 }
 
