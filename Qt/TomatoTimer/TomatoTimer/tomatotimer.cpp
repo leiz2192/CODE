@@ -17,6 +17,10 @@ TomatoTimer::TomatoTimer(QWidget *parent)
     , restTimerCount(DEFAULT_RESTTIMERCOUNT)
     , RESET_WORKTIMERCOUNT(DEFAULT_WORKTIMERCOUNT)
     , RESET_RESTTIMERCOUNT(DEFAULT_RESTTIMERCOUNT)
+    , setTimeAction(NULL)
+    , timeSetSelectType(NULL)
+    , lineEdit(NULL)
+    , setTimeDialog(NULL)
 {
     createTimeGroupBox();
     createTimerGroupBox();
@@ -30,6 +34,7 @@ TomatoTimer::TomatoTimer(QWidget *parent)
     connect(setTimeAction, SIGNAL(triggered()), this, SLOT(setTimeActionEvent()));
     
     setWindowTitle(tr("Tomato Timer"));
+    //setWindowFlags(Qt::CustomizeWindowHint | Qt::FramelessWindowHint);
     resize(316, 75);
 }
 
@@ -88,21 +93,21 @@ void TomatoTimer::showLCD()
             //text = QString("%1:%2:%3").arg(workTimerCount / 3600, 2).arg(workTimerCount / 60, 2).arg(workTimerCount % 60, 2);
             time = time.addSecs(workTimerCount);
             --workTimerCount;
+            break;
         } else {
             workTimerButton->toggle();
             QMessageBox::information(this, "WORK", "Work Time Finished", QMessageBox::Ok);
         }
-        break;
     case REST:
         if (restTimerCount > 0) {
             //text = QString("%1:%2:%3").arg(restTimerCount / 3600, 2).arg(restTimerCount / 60, 2).arg(restTimerCount % 60, 2);
             time = time.addSecs(restTimerCount);
             --restTimerCount;
+            break;
         } else {
             restTimerButton->toggle();
             QMessageBox::information(this, "REST", "Rest Time Finished", QMessageBox::Ok);
         }
-        break;
     case TIME:
     default:
         time = QTime::currentTime();
@@ -140,9 +145,7 @@ void TomatoTimer::contextMenuEvent(QContextMenuEvent *)
 {
     QMenu *menu = new QMenu(this);
     menu->addAction(setTimeAction);
-
-    QCursor cur = this->cursor();
-    menu->exec(cur.pos());
+    menu->exec(cursor().pos());
 }
 
 void TomatoTimer::setTimeActionEvent()
@@ -168,25 +171,32 @@ void TomatoTimer::setTimeActionEvent()
     layout->addWidget(button);
 
     setTimeDialog = new QDialog();
-    setTimeDialog->setWindowTitle(tr("Set Time"));
     setTimeDialog->setLayout(layout);
-
+    setTimeDialog->setWindowTitle(tr("Set Time"));
+    //setTimeDialog->setWindowFlags(Qt::CustomizeWindowHint | Qt::FramelessWindowHint);
+    //setTimeDialog->setWindowFlags(Qt::Widget);
     setTimeDialog->show();
+
+    workTimerButton->setDisabled(true);
+    restTimerButton->setDisabled(true);
 }
 
 void TomatoTimer::setTimeLineEditEvent()
 {
     if (lineEdit->text().isEmpty())
     {
-        workTimerCount = RESET_WORKTIMERCOUNT;
-        restTimerCount = RESET_RESTTIMERCOUNT;
+        workTimerCount = DEFAULT_WORKTIMERCOUNT;
+        restTimerCount = DEFAULT_RESTTIMERCOUNT;
     } else if (timeSetSelectType->currentText() == "Work Time") {
         workTimerCount = lineEdit->text().toInt();
-        RESET_WORKTIMERCOUNT = workTimerCount;
     } else if (timeSetSelectType->currentText() == "Rest Time") {
         restTimerCount = lineEdit->text().toInt();
-        RESET_RESTTIMERCOUNT = restTimerCount;
     }
+    RESET_WORKTIMERCOUNT = workTimerCount;
+    RESET_RESTTIMERCOUNT = restTimerCount;
     setTimeDialog->close();
+
+    workTimerButton->setDisabled(false);
+    restTimerButton->setDisabled(false);
 }
 
