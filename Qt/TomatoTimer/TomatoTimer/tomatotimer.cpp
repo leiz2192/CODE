@@ -10,28 +10,24 @@
 #include <QComboBox>
 #include <QLineEdit>
 #include <QValidator>
+#include <QCloseEvent>
 
 TomatoTimer::TomatoTimer(QWidget *parent)
-    : lcdShowFlag(TIME)
+    : m_lcdShowType(TIME)
     , workTimerCount(DEFAULT_WORKTIMERCOUNT)
     , restTimerCount(DEFAULT_RESTTIMERCOUNT)
     , RESET_WORKTIMERCOUNT(DEFAULT_WORKTIMERCOUNT)
     , RESET_RESTTIMERCOUNT(DEFAULT_RESTTIMERCOUNT)
-    , setTimeAction(NULL)
-    , timeSetSelectType(NULL)
-    , lineEdit(NULL)
-    , setTimeDialog(NULL)
 {
-    createTimeGroupBox();
-    createTimerGroupBox();
+    initDisplayGroupBox();
+    initTimerButtonGroupBox();
+    initMenu();
+    initTimerSetDialog();
 
     QHBoxLayout * mainLayout = new QHBoxLayout;
-    mainLayout->addWidget(timeGroupBox);
-    mainLayout->addWidget(timerGroupBox);
+    mainLayout->addWidget(m_displayGroupBox);
+    mainLayout->addWidget(m_timerButtonGroupBox);
     setLayout(mainLayout);
-    
-    setTimeAction = new QAction(tr("SetTime"), this);
-    connect(setTimeAction, SIGNAL(triggered()), this, SLOT(setTimeActionEvent()));
     
     setWindowTitle(tr("Tomato Timer"));
     //setWindowFlags(Qt::CustomizeWindowHint | Qt::FramelessWindowHint);
@@ -42,52 +38,87 @@ TomatoTimer::~TomatoTimer()
 {
 }
 
-void TomatoTimer::createTimeGroupBox()
+void TomatoTimer::initDisplayGroupBox()
 {
-    timeLCD = new QLCDNumber(this);
-    timeLCD->setSegmentStyle(QLCDNumber::Flat);
-    timeLCD->setDigitCount(8);
+    m_displayLCD = new QLCDNumber(this);
+    m_displayLCD->setSegmentStyle(QLCDNumber::Flat);
+    m_displayLCD->setDigitCount(8);
 
-    timeTimer = new QTimer(this);
-    connect(timeTimer, SIGNAL(timeout()), this, SLOT(showLCD()));
-    timeTimer->start(1000);
+    m_timer = new QTimer(this);
+    connect(m_timer, SIGNAL(timeout()), this, SLOT(lcdDisplaySlot()));
+    m_timer->start(1000);
     
-    showLCD();
+    lcdDisplaySlot();
 
     QHBoxLayout *layout = new QHBoxLayout;
     layout->setMargin(0);
-    layout->addWidget(timeLCD);
+    layout->addWidget(m_displayLCD);
 
-    timeGroupBox = new QGroupBox();
-    timeGroupBox->setLayout(layout);
+    m_displayGroupBox = new QGroupBox();
+    m_displayGroupBox->setLayout(layout);
 }
 
-void TomatoTimer::createTimerGroupBox()
+void TomatoTimer::initTimerButtonGroupBox()
 {
-    workTimerButton = new QPushButton(tr("Start &Work"));
-    workTimerButton->setDefault(true);
-    workTimerButton->setCheckable(true);
-    connect(workTimerButton, SIGNAL(toggled(bool)), this, SLOT(workTimerButtonEvent(bool)));
+    m_workTimerButton = new QPushButton(tr("Start &Work"));
+    m_workTimerButton->setDefault(true);
+    m_workTimerButton->setCheckable(true);
+    connect(m_workTimerButton, SIGNAL(toggled(bool)), this, SLOT(workTimerButtonSlot(bool)));
 
-    restTimerButton = new QPushButton(tr("Start &Rest"));
-    restTimerButton->setCheckable(true);
-    connect(restTimerButton, SIGNAL(toggled(bool)), this, SLOT(restTimerButtonEvent(bool)));
+    m_restTimerButton = new QPushButton(tr("Start &Rest"));
+    m_restTimerButton->setCheckable(true);
+    connect(m_restTimerButton, SIGNAL(toggled(bool)), this, SLOT(restTimerButtonSlot(bool)));
 
     QVBoxLayout *layout = new QVBoxLayout;
     layout->setMargin(0);
-    layout->addWidget(workTimerButton);
-    layout->addWidget(restTimerButton);
+    layout->addWidget(m_workTimerButton);
+    layout->addWidget(m_restTimerButton);
 
-    timerGroupBox = new QGroupBox();
-    timerGroupBox->setLayout(layout);
-    timerGroupBox->setSizePolicy(QSizePolicy::Policy::Fixed, QSizePolicy::Policy::Fixed);
+    m_timerButtonGroupBox = new QGroupBox();
+    m_timerButtonGroupBox->setLayout(layout);
+    m_timerButtonGroupBox->setSizePolicy(QSizePolicy::Policy::Fixed, QSizePolicy::Policy::Fixed);
 }
 
-void TomatoTimer::showLCD()
+void TomatoTimer::initMenu()
+{
+    m_timerSetAction = new QAction(tr("Set Timer"), this);
+    connect(m_timerSetAction, SIGNAL(triggered()), this, SLOT(timerSetActionSlot()));
+}
+
+void TomatoTimer::initTimerSetDialog()
+{
+    m_setTypeForTimerSet = new QComboBox;
+    m_setTypeForTimerSet->addItem(tr("Work Time"));
+    m_setTypeForTimerSet->addItem(tr("Rest Time"));
+    m_setTypeForTimerSet->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+
+    m_lineEditForTimerSet = new QLineEdit();
+    QIntValidator *intValidator = new QIntValidator();
+    intValidator->setBottom(0);
+    m_lineEditForTimerSet->setValidator(intValidator);
+    connect(m_lineEditForTimerSet, SIGNAL(editingFinished()), this, SLOT(timerSetLineEditSlot()));
+
+    QPushButton *button = new QPushButton(tr("OK"));
+    button->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    connect(button, SIGNAL(clicked()), this, SLOT(timerSetLineEditSlot()));
+
+    QHBoxLayout *layout = new QHBoxLayout();
+    layout->addWidget(m_setTypeForTimerSet);
+    layout->addWidget(m_lineEditForTimerSet);
+    layout->addWidget(button);
+
+    m_timerSetDialog = new QDialog();
+    m_timerSetDialog->setLayout(layout);
+    m_timerSetDialog->setWindowTitle(tr("Set Timer"));
+
+    connect(m_timerSetDialog, SIGNAL(finished(int)), this, SLOT(timerSetDialogSlot()));
+}
+
+void TomatoTimer::lcdDisplaySlot()
 {
     QString text;
     QTime time(0, 0, 0);
-    switch (lcdShowFlag) {
+    switch (m_lcdShowType) {
     case WORK:
         if (workTimerCount > 0) {
             //text = QString("%1:%2:%3").arg(workTimerCount / 3600, 2).arg(workTimerCount / 60, 2).arg(workTimerCount % 60, 2);
@@ -95,7 +126,7 @@ void TomatoTimer::showLCD()
             --workTimerCount;
             break;
         } else {
-            workTimerButton->toggle();
+            m_workTimerButton->toggle();
             QMessageBox::information(this, "WORK", "Work Time Finished", QMessageBox::Ok);
         }
     case REST:
@@ -105,7 +136,7 @@ void TomatoTimer::showLCD()
             --restTimerCount;
             break;
         } else {
-            restTimerButton->toggle();
+            m_restTimerButton->toggle();
             QMessageBox::information(this, "REST", "Rest Time Finished", QMessageBox::Ok);
         }
     case TIME:
@@ -114,89 +145,71 @@ void TomatoTimer::showLCD()
     }
 
     text = time.toString("hh:mm:ss");
-    timeLCD->display(text);
+    m_displayLCD->display(text);
 }
 
-void TomatoTimer::workTimerButtonEvent(bool checked)
+void TomatoTimer::workTimerButtonSlot(bool checked)
 {
     if (!checked) {
         workTimerCount = RESET_WORKTIMERCOUNT;
     }
 
-    workTimerButton->setText(tr((checked) ? "&Working..." : "Start &Work"));
-    lcdShowFlag = (checked) ? WORK : TIME;
-    restTimerButton->setDisabled(checked);
-    setTimeAction->setDisabled(checked);
+    m_workTimerButton->setText(tr((checked) ? "&Working..." : "Start &Work"));
+    m_lcdShowType = (checked) ? WORK : TIME;
+    m_restTimerButton->setDisabled(checked);
+    m_timerSetAction->setDisabled(checked);
 }
 
-void TomatoTimer::restTimerButtonEvent(bool checked)
+void TomatoTimer::restTimerButtonSlot(bool checked)
 {
-    if (! checked) {
+    if (!checked) {
         restTimerCount = RESET_RESTTIMERCOUNT;
     }
 
-    restTimerButton->setText(tr((checked) ? "&Resting..." : "Start &Rest"));
-    lcdShowFlag = (checked) ? REST : TIME;
-    workTimerButton->setDisabled(checked);
-    setTimeAction->setDisabled(checked);
+    m_restTimerButton->setText(tr((checked) ? "&Resting..." : "Start &Rest"));
+    m_lcdShowType = (checked) ? REST : TIME;
+    m_workTimerButton->setDisabled(checked);
+    m_timerSetAction->setDisabled(checked);
 }
 
 void TomatoTimer::contextMenuEvent(QContextMenuEvent *)
 {
     QMenu *menu = new QMenu(this);
-    menu->addAction(setTimeAction);
+    menu->addAction(m_timerSetAction);
     menu->exec(cursor().pos());
 }
 
-void TomatoTimer::setTimeActionEvent()
+void TomatoTimer::timerSetActionSlot()
 {
-    timeSetSelectType = new QComboBox;
-    timeSetSelectType->addItem(tr("Work Time"));
-    timeSetSelectType->addItem(tr("Rest Time"));
-    timeSetSelectType->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-
-    lineEdit = new QLineEdit();
-    QIntValidator *intValidator = new QIntValidator();
-    intValidator->setBottom(0);
-    lineEdit->setValidator(intValidator);
-    connect(lineEdit, SIGNAL(editingFinished()), this, SLOT(setTimeLineEditEvent()));
-
-    QPushButton *button = new QPushButton(tr("OK"));
-    button->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    connect(button, SIGNAL(clicked()), this, SLOT(setTimeLineEditEvent()));
-
-    QHBoxLayout *layout = new QHBoxLayout();
-    layout->addWidget(timeSetSelectType);
-    layout->addWidget(lineEdit);
-    layout->addWidget(button);
-
-    setTimeDialog = new QDialog();
-    setTimeDialog->setLayout(layout);
-    setTimeDialog->setWindowTitle(tr("Set Time"));
     //setTimeDialog->setWindowFlags(Qt::CustomizeWindowHint | Qt::FramelessWindowHint);
     //setTimeDialog->setWindowFlags(Qt::Widget);
-    setTimeDialog->show();
+    m_timerSetDialog->show();
 
-    workTimerButton->setDisabled(true);
-    restTimerButton->setDisabled(true);
+    m_workTimerButton->setDisabled(true);
+    m_restTimerButton->setDisabled(true);
 }
 
-void TomatoTimer::setTimeLineEditEvent()
+void TomatoTimer::timerSetLineEditSlot()
 {
-    if (lineEdit->text().isEmpty())
+    if (m_lineEditForTimerSet->text().isEmpty())
     {
         workTimerCount = DEFAULT_WORKTIMERCOUNT;
         restTimerCount = DEFAULT_RESTTIMERCOUNT;
-    } else if (timeSetSelectType->currentText() == "Work Time") {
-        workTimerCount = lineEdit->text().toInt();
-    } else if (timeSetSelectType->currentText() == "Rest Time") {
-        restTimerCount = lineEdit->text().toInt();
+    } else if (m_setTypeForTimerSet->currentText() == "Work Time") {
+        workTimerCount = m_lineEditForTimerSet->text().toInt();
+    } else if (m_setTypeForTimerSet->currentText() == "Rest Time") {
+        restTimerCount = m_lineEditForTimerSet->text().toInt();
     }
     RESET_WORKTIMERCOUNT = workTimerCount;
     RESET_RESTTIMERCOUNT = restTimerCount;
-    setTimeDialog->close();
+    m_timerSetDialog->close();
 
-    workTimerButton->setDisabled(false);
-    restTimerButton->setDisabled(false);
+    timerSetDialogSlot();
+}
+
+void TomatoTimer::timerSetDialogSlot()
+{
+    m_workTimerButton->setDisabled(false);
+    m_restTimerButton->setDisabled(false);
 }
 

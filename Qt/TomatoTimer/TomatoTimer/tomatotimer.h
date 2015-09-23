@@ -25,42 +25,54 @@ public:
     TomatoTimer(QWidget *parent = 0);
     ~TomatoTimer();
 
-private:
-    void createTimeGroupBox();
-    void createTimerGroupBox();
-
+protected:
     void contextMenuEvent(QContextMenuEvent *);
 
 private:
-    QTimer * timeTimer;
+    void initDisplayGroupBox();
+    void initTimerButtonGroupBox();
+    void initMenu();
+    void initTimerSetDialog();
 
-    QGroupBox *timeGroupBox;
-    QLCDNumber *timeLCD;
+private:
+    //定时器
+    QTimer * m_timer;
+    //显示
+    QGroupBox  *m_displayGroupBox;
+    QLCDNumber *m_displayLCD;
+    //计时显示
+    QGroupBox   *m_timerButtonGroupBox;
+    QPushButton *m_workTimerButton;
+    QPushButton *m_restTimerButton;
 
-    QGroupBox *timerGroupBox;
-    QPushButton *workTimerButton;
-    QPushButton *restTimerButton;
+    LCDSHOWTYPE m_lcdShowType;
 
-    LCDSHOWTYPE lcdShowFlag;
-
+    //计时
     int workTimerCount;
     int restTimerCount;
 
     int RESET_WORKTIMERCOUNT;
     int RESET_RESTTIMERCOUNT;
+    
+    //右键计时设置
+    QAction *m_timerSetAction;
 
-    QAction *setTimeAction;
-    QComboBox *timeSetSelectType;
-    QLineEdit *lineEdit;
-    QDialog *setTimeDialog;
+    //计时设置窗口
+    QDialog   *m_timerSetDialog;
+    QComboBox *m_setTypeForTimerSet;
+    QLineEdit *m_lineEditForTimerSet;
 
 private slots:
-    void showLCD();
-    void workTimerButtonEvent(bool checked);
-    void restTimerButtonEvent(bool checked);
+    void lcdDisplaySlot();
 
-    void setTimeActionEvent();
-    void setTimeLineEditEvent();
+    void workTimerButtonSlot(bool checked);
+    void restTimerButtonSlot(bool checked);
+
+    void timerSetActionSlot();
+    void timerSetLineEditSlot();
+
+    void timerSetDialogSlot();
 };
 
 #endif // TOMATOTIMER_H
+
