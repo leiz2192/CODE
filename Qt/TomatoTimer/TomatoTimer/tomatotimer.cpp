@@ -11,6 +11,8 @@
 #include <QLineEdit>
 #include <QValidator>
 #include <QCloseEvent>
+#include <QtMultimedia/QMediaPlayer>
+#include <QUrl>
 
 TomatoTimer::TomatoTimer(QWidget *parent)
     : m_lcdShowType(TIME)
@@ -29,7 +31,7 @@ TomatoTimer::TomatoTimer(QWidget *parent)
     mainLayout->addWidget(m_timerButtonGroupBox);
     setLayout(mainLayout);
     
-    setWindowTitle(tr("Tomato Timer"));
+    setWindowTitle(tr(MainDialogName.c_str()));
     //setWindowFlags(Qt::CustomizeWindowHint | Qt::FramelessWindowHint);
     resize(316, 75);
 }
@@ -60,12 +62,12 @@ void TomatoTimer::initDisplayGroupBox()
 
 void TomatoTimer::initTimerButtonGroupBox()
 {
-    m_workTimerButton = new QPushButton(tr("Start &Work"));
+    m_workTimerButton = new QPushButton(tr(WorkTimerButtonName.c_str()));
     m_workTimerButton->setDefault(true);
     m_workTimerButton->setCheckable(true);
     connect(m_workTimerButton, SIGNAL(toggled(bool)), this, SLOT(workTimerButtonSlot(bool)));
 
-    m_restTimerButton = new QPushButton(tr("Start &Rest"));
+    m_restTimerButton = new QPushButton(tr(RestTimerButtonName.c_str()));
     m_restTimerButton->setCheckable(true);
     connect(m_restTimerButton, SIGNAL(toggled(bool)), this, SLOT(restTimerButtonSlot(bool)));
 
@@ -81,15 +83,15 @@ void TomatoTimer::initTimerButtonGroupBox()
 
 void TomatoTimer::initMenu()
 {
-    m_timerSetAction = new QAction(tr("Set Timer"), this);
+    m_timerSetAction = new QAction(tr(TimerSetActionName.c_str()), this);
     connect(m_timerSetAction, SIGNAL(triggered()), this, SLOT(timerSetActionSlot()));
 }
 
 void TomatoTimer::initTimerSetDialog()
 {
     m_setTypeForTimerSet = new QComboBox;
-    m_setTypeForTimerSet->addItem(tr("Work Time"));
-    m_setTypeForTimerSet->addItem(tr("Rest Time"));
+    m_setTypeForTimerSet->addItem(tr(WorkSetTypeNameForTimerSet.c_str()));
+    m_setTypeForTimerSet->addItem(tr(RestSetTypeNameForTimerSet.c_str()));
     m_setTypeForTimerSet->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
     m_lineEditForTimerSet = new QLineEdit();
@@ -109,7 +111,7 @@ void TomatoTimer::initTimerSetDialog()
 
     m_timerSetDialog = new QDialog();
     m_timerSetDialog->setLayout(layout);
-    m_timerSetDialog->setWindowTitle(tr("Set Timer"));
+    m_timerSetDialog->setWindowTitle(tr(TimerSetDialogName.c_str()));
 
     connect(m_timerSetDialog, SIGNAL(finished(int)), this, SLOT(timerSetDialogSlot()));
 }
@@ -124,21 +126,19 @@ void TomatoTimer::lcdDisplaySlot()
             //text = QString("%1:%2:%3").arg(workTimerCount / 3600, 2).arg(workTimerCount / 60, 2).arg(workTimerCount % 60, 2);
             time = time.addSecs(workTimerCount);
             --workTimerCount;
-            break;
         } else {
-            m_workTimerButton->toggle();
-            QMessageBox::information(this, "WORK", "Work Time Finished", QMessageBox::Ok);
+            timerOverSlot(WORK);
         }
+        break;
     case REST:
         if (restTimerCount > 0) {
             //text = QString("%1:%2:%3").arg(restTimerCount / 3600, 2).arg(restTimerCount / 60, 2).arg(restTimerCount % 60, 2);
             time = time.addSecs(restTimerCount);
             --restTimerCount;
-            break;
         } else {
-            m_restTimerButton->toggle();
-            QMessageBox::information(this, "REST", "Rest Time Finished", QMessageBox::Ok);
+            timerOverSlot(REST);
         }
+        break;
     case TIME:
     default:
         time = QTime::currentTime();
@@ -154,7 +154,7 @@ void TomatoTimer::workTimerButtonSlot(bool checked)
         workTimerCount = RESET_WORKTIMERCOUNT;
     }
 
-    m_workTimerButton->setText(tr((checked) ? "&Working..." : "Start &Work"));
+    m_workTimerButton->setText(tr((checked) ? "&Working..." : WorkTimerButtonName.c_str()));
     m_lcdShowType = (checked) ? WORK : TIME;
     m_restTimerButton->setDisabled(checked);
     m_timerSetAction->setDisabled(checked);
@@ -166,7 +166,7 @@ void TomatoTimer::restTimerButtonSlot(bool checked)
         restTimerCount = RESET_RESTTIMERCOUNT;
     }
 
-    m_restTimerButton->setText(tr((checked) ? "&Resting..." : "Start &Rest"));
+    m_restTimerButton->setText(tr((checked) ? "&Resting..." : RestTimerButtonName.c_str()));
     m_lcdShowType = (checked) ? REST : TIME;
     m_workTimerButton->setDisabled(checked);
     m_timerSetAction->setDisabled(checked);
@@ -195,9 +195,9 @@ void TomatoTimer::timerSetLineEditSlot()
     {
         workTimerCount = DEFAULT_WORKTIMERCOUNT;
         restTimerCount = DEFAULT_RESTTIMERCOUNT;
-    } else if (m_setTypeForTimerSet->currentText() == "Work Time") {
+    } else if (m_setTypeForTimerSet->currentText() == WorkSetTypeNameForTimerSet.c_str()) {
         workTimerCount = m_lineEditForTimerSet->text().toInt();
-    } else if (m_setTypeForTimerSet->currentText() == "Rest Time") {
+    } else if (m_setTypeForTimerSet->currentText() == RestSetTypeNameForTimerSet.c_str()) {
         restTimerCount = m_lineEditForTimerSet->text().toInt();
     }
     RESET_WORKTIMERCOUNT = workTimerCount;
@@ -211,5 +211,25 @@ void TomatoTimer::timerSetDialogSlot()
 {
     m_workTimerButton->setDisabled(false);
     m_restTimerButton->setDisabled(false);
+}
+
+void TomatoTimer::timerOverSlot(LCDSHOWTYPE lcdShowType)
+{
+    if (lcdShowType == WORK) {
+        m_workTimerButton->toggle();
+    } else if (lcdShowType == REST) {
+        m_restTimerButton->toggle();
+    }
+
+    QMediaPlayer *player = new QMediaPlayer(this);
+    player->setMedia(QUrl::fromLocalFile("alarm.mp3"));
+    player->setVolume(100);
+    player->play();
+
+    QMessageBox::StandardButton rb = QMessageBox::information(this, "Information", "Time Over", QMessageBox::Ok);
+    if (rb == QMessageBox::Ok)
+    {
+        player->stop();
+    }
 }
 
