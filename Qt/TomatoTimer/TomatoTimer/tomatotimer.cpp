@@ -215,11 +215,7 @@ void TomatoTimer::timerSetDialogSlot()
 
 void TomatoTimer::timerOverSlot(LCDSHOWTYPE lcdShowType)
 {
-    if (lcdShowType == WORK) {
-        m_workTimerButton->toggle();
-    } else if (lcdShowType == REST) {
-        m_restTimerButton->toggle();
-    }
+    setMainWindowFlags(Qt::WindowStaysOnTopHint);
 
     QMediaPlayer *player = new QMediaPlayer(this);
     player->setMedia(QUrl::fromLocalFile("alarm.mp3"));
@@ -227,9 +223,26 @@ void TomatoTimer::timerOverSlot(LCDSHOWTYPE lcdShowType)
     player->play();
 
     QMessageBox::StandardButton rb = QMessageBox::information(this, "Information", "Time Over", QMessageBox::Ok);
-    if (rb == QMessageBox::Ok)
-    {
+    if (rb == QMessageBox::Ok) {
         player->stop();
+        
+        setMainWindowFlags(Qt::Widget);
+
+        if (lcdShowType == WORK) {
+            m_workTimerButton->toggle();
+        }
+        else if (lcdShowType == REST) {
+            m_restTimerButton->toggle();
+        }
     }
+    delete player;
 }
+
+void TomatoTimer::setMainWindowFlags(Qt::WindowFlags type)
+{
+    hide();
+    setWindowFlags(type);
+    show();
+}
+
 

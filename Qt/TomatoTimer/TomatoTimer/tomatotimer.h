@@ -47,6 +47,7 @@ private:
     void initTimerSetDialog();
 
     void timerOverSlot(LCDSHOWTYPE lcdShowType);
+    void setMainWindowFlags(Qt::WindowFlags type);
 
 private:
     //¶¨Ê±Æ÷
