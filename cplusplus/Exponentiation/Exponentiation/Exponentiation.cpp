@@ -65,9 +65,9 @@ void cutInsignificantTail(std::string& strR)
         return;
     }
 
-    for (int i = strR.size() - 1; i > index; i--) {
+    for (int i = strR.size() - 1; i >= index; i--) {
         if ('0' == strR[i] || '.' == strR[i]) {
-            strR.erase(i);
+            strR.erase(i, 1);
         } else {
             return;
         }
@@ -123,7 +123,10 @@ int _tmain(int argc, _TCHAR* argv[])
         }
 
         int len = result.size();
-        if ((len - (pointIndex - 1) * N) < 0) {
+        if (pointIndex < 1) {
+            std::cout << result;
+        }
+        else if ((len - (pointIndex - 1) * N) < 0) {
             std::cout << "." << std::string((pointIndex - 1) * N - len, '0') << result;
         }
         else {
