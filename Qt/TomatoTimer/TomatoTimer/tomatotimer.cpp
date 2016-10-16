@@ -83,8 +83,8 @@ void TomatoTimer::initTimerButtonGroupBox()
 
 void TomatoTimer::initMenu()
 {
-    m_timerSetAction = new QAction(tr(TimerSetActionName.c_str()), this);
-    connect(m_timerSetAction, SIGNAL(triggered()), this, SLOT(timerSetActionSlot()));
+    m_timerSetAction = new QAction(tr(SettingActionName.c_str()), this);
+    connect(m_timerSetAction, SIGNAL(triggered()), this, SLOT(settingActionSlot()));
 }
 
 void TomatoTimer::initTimerSetDialog()
@@ -109,11 +109,11 @@ void TomatoTimer::initTimerSetDialog()
     layout->addWidget(m_lineEditForTimerSet);
     layout->addWidget(button);
 
-    m_timerSetDialog = new QDialog();
-    m_timerSetDialog->setLayout(layout);
-    m_timerSetDialog->setWindowTitle(tr(TimerSetDialogName.c_str()));
+    m_settingDialog = new QDialog();
+    m_settingDialog->setLayout(layout);
+    m_settingDialog->setWindowTitle(tr(SettingDialogName.c_str()));
 
-    connect(m_timerSetDialog, SIGNAL(finished(int)), this, SLOT(timerSetDialogSlot()));
+    connect(m_settingDialog, SIGNAL(finished(int)), this, SLOT(settingDialogSlot()));
 }
 
 void TomatoTimer::lcdDisplaySlot()
@@ -179,11 +179,11 @@ void TomatoTimer::contextMenuEvent(QContextMenuEvent *)
     menu->exec(cursor().pos());
 }
 
-void TomatoTimer::timerSetActionSlot()
+void TomatoTimer::settingActionSlot()
 {
     //setTimeDialog->setWindowFlags(Qt::CustomizeWindowHint | Qt::FramelessWindowHint);
     //setTimeDialog->setWindowFlags(Qt::Widget);
-    m_timerSetDialog->show();
+    m_settingDialog->show();
 
     m_workTimerButton->setDisabled(true);
     m_restTimerButton->setDisabled(true);
@@ -202,12 +202,12 @@ void TomatoTimer::timerSetLineEditSlot()
     }
     RESET_WORKTIMERCOUNT = workTimerCount;
     RESET_RESTTIMERCOUNT = restTimerCount;
-    m_timerSetDialog->close();
+    m_settingDialog->close();
 
-    timerSetDialogSlot();
+    settingDialogSlot();
 }
 
-void TomatoTimer::timerSetDialogSlot()
+void TomatoTimer::settingDialogSlot()
 {
     m_workTimerButton->setDisabled(false);
     m_restTimerButton->setDisabled(false);
@@ -217,15 +217,22 @@ void TomatoTimer::timerOverSlot(LCDSHOWTYPE lcdShowType)
 {
     setMainWindowFlags(Qt::WindowStaysOnTopHint);
 
-    QMediaPlayer *player = new QMediaPlayer(this);
-    player->setMedia(QUrl::fromLocalFile("alarm.mp3"));
-    player->setVolume(100);
-    player->play();
+    QMediaPlayer player(this);
+    player.setMedia(QUrl::fromLocalFile("alarm.mp3"));
+    player.setVolume(100);
+    player.play();
 
-    QMessageBox::StandardButton rb = QMessageBox::information(this, "Information", "Time Over", QMessageBox::Ok);
-    if (rb == QMessageBox::Ok) {
-        player->stop();
-        
+    QMessageBox::StandardButton retButton = QMessageBox::information(this, 
+        "Information", 
+        "Time Over", 
+        QMessageBox::Ok|QMessageBox::Save);
+    switch (retButton) {
+    case QMessageBox::Save:
+        break;
+    case QMessageBox::Ok:
+    default:
+        player.stop();
+
         setMainWindowFlags(Qt::Widget);
 
         if (lcdShowType == WORK) {
@@ -235,7 +242,6 @@ void TomatoTimer::timerOverSlot(LCDSHOWTYPE lcdShowType)
             m_restTimerButton->toggle();
         }
     }
-    delete player;
 }
 
 void TomatoTimer::setMainWindowFlags(Qt::WindowFlags type)

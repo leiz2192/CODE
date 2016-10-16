@@ -14,20 +14,8 @@
 #include <QMenu>
 #include <QCursor>
 
-enum LCDSHOWTYPE {TIME, WORK, REST};
-
-const int DEFAULT_WORKTIMERCOUNT = 25 * 60;
-const int DEFAULT_RESTTIMERCOUNT = 5 * 60;
-
-const std::string MainDialogName = "Tomato Timer";
-const std::string WorkTimerButtonName = "Start &Work";
-const std::string RestTimerButtonName = "Start &Rest";
-
-const std::string TimerSetActionName = "Set Timer";
-const std::string TimerSetDialogName = "Set Timer";
-
-const std::string WorkSetTypeNameForTimerSet = "Work Timer";
-const std::string RestSetTypeNameForTimerSet = "Rest Timer";
+#include "CommonDef.h"
+#include "SettingDialog.h"
 
 class TomatoTimer : public QDialog
 {
@@ -72,8 +60,8 @@ private:
     //右键计时设置
     QAction *m_timerSetAction;
 
-    //计时设置窗口
-    QDialog   *m_timerSetDialog;
+    //设置窗口
+    QDialog   *m_settingDialog;
     QComboBox *m_setTypeForTimerSet;
     QLineEdit *m_lineEditForTimerSet;
 
@@ -83,11 +71,17 @@ private slots:
     void workTimerButtonSlot(bool checked);
     void restTimerButtonSlot(bool checked);
 
-    void timerSetActionSlot();
+    void settingActionSlot();
     void timerSetLineEditSlot();
 
-    void timerSetDialogSlot();
+    void settingDialogSlot();
 };
+
+class EventRecordDialog : public QDialog
+{
+    Q_OBJECT
+};
+
 
 #endif // TOMATOTIMER_H
 
