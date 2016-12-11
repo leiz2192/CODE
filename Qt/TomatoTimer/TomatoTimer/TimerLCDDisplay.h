@@ -3,7 +3,7 @@
 
 #include "LCDDisplay.h"
 
-const int DEFAULT_WORKTIMERCOUNT = 25 * 60;
+const unsigned int DEFAULT_WORKTIMERCOUNT = 25 * 60;
 
 class TimerLCDDisplay : public LCDDisplay
 {
@@ -11,11 +11,14 @@ public:
     TimerLCDDisplay(QWidget *parent, unsigned timecount);
     virtual ~TimerLCDDisplay() {}
 
+    virtual void initialize();
+
+private slots:
     virtual void displaySlot();
 
 private:
-    unsigned timecnt_;
-}
+    unsigned int timecnt_;
+};
 
 #endif  //__WORKLCDDISPLAY_H__
 

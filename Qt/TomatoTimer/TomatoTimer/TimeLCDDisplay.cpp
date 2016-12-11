@@ -1,11 +1,18 @@
-#include "TimeDisplay.hpp"
+#include "TimeLCDDisplay.h"
 
 #include <QTime>
 #include <QString>
 
+#include <iostream>
+
 TimeLCDDisplay::TimeLCDDisplay(QWidget *parent)
     : LCDDisplay(parent)
 {
+}
+
+void TimeLCDDisplay::initialize()
+{
+    LCDDisplay::initialize();
 }
 
 void TimeLCDDisplay::displaySlot()
