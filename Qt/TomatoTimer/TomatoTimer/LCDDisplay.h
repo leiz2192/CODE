@@ -17,6 +17,11 @@ public :
     LCDDisplay(QWidget *parent = 0);
     virtual ~LCDDisplay() {}
     virtual void initialize();
+    
+    std::shared_ptr<QGroupBox> getDisplayQGroupBox()
+    {
+        return displayGroupBox_;
+    }
 
 protected slots :
     virtual void displaySlot() = 0;

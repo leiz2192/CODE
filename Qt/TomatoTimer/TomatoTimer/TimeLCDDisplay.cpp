@@ -8,6 +8,7 @@
 TimeLCDDisplay::TimeLCDDisplay(QWidget *parent)
     : LCDDisplay(parent)
 {
+    initialize();
 }
 
 void TimeLCDDisplay::initialize()

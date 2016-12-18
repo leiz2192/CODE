@@ -11,6 +11,6 @@ int main(int argc, char *argv[])
     //w.show();
 
     TomatoTimepiece w;
-
+    w.show();
     return a.exec();
 }

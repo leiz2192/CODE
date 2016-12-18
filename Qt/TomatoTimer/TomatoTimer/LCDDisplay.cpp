@@ -26,12 +26,5 @@ void LCDDisplay::initialize()
 
     displayGroupBox_ = std::shared_ptr<QGroupBox>(new QGroupBox());
     displayGroupBox_->setLayout(layout);
-
-    QHBoxLayout * mainLayout = new QHBoxLayout;
-    mainLayout->addWidget(displayGroupBox_.get());
-    setLayout(mainLayout);
-
-    setWindowTitle(tr(MainDialogName.c_str()));
-    resize(316, 75);
 }
 
