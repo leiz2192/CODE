@@ -17,7 +17,7 @@ void LCDDisplay::initialize()
 
     timer_ = std::shared_ptr<QTimer>(new QTimer(this));
     connect(timer_.get(), SIGNAL(timeout()), this, SLOT(displaySlot()));
-    timer_->start(1000);
+    timer_start();
     displaySlot();
 
     QHBoxLayout *layout = new QHBoxLayout;

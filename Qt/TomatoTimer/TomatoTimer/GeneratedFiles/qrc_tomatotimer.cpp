@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Resource object code
 **
-** Created by: The Resource Compiler for Qt version 5.5.0
+** Created by: The Resource Compiler for Qt version 5.8.0
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
@@ -26,21 +26,21 @@ namespace QT_NAMESPACE {
 }
 #endif
 
-int QT_RCC_MANGLE_NAMESPACE(qInitResources_tomatotimer)();
-int QT_RCC_MANGLE_NAMESPACE(qInitResources_tomatotimer)()
+int QT_RCC_MANGLE_NAMESPACE(qInitResources_TomatoTimer)();
+int QT_RCC_MANGLE_NAMESPACE(qInitResources_TomatoTimer)()
 {
     return 1;
 }
 
-int QT_RCC_MANGLE_NAMESPACE(qCleanupResources_tomatotimer)();
-int QT_RCC_MANGLE_NAMESPACE(qCleanupResources_tomatotimer)()
+int QT_RCC_MANGLE_NAMESPACE(qCleanupResources_TomatoTimer)();
+int QT_RCC_MANGLE_NAMESPACE(qCleanupResources_TomatoTimer)()
 {
     return 1;
 }
 
 namespace {
    struct initializer {
-       initializer() { QT_RCC_MANGLE_NAMESPACE(qInitResources_tomatotimer)(); }
-       ~initializer() { QT_RCC_MANGLE_NAMESPACE(qCleanupResources_tomatotimer)(); }
+       initializer() { QT_RCC_MANGLE_NAMESPACE(qInitResources_TomatoTimer)(); }
+       ~initializer() { QT_RCC_MANGLE_NAMESPACE(qCleanupResources_TomatoTimer)(); }
    } dummy;
 }

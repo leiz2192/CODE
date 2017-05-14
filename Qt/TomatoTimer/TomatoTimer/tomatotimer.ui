@@ -23,7 +23,7 @@
  <layoutDefault spacing="6" margin="11" />
  <pixmapfunction></pixmapfunction>
  <resources>
-   <include location="tomatotimer.qrc"/>
+   <include location="TomatoTimer.qrc"/>
  </resources>
  <connections/>
 </UI>

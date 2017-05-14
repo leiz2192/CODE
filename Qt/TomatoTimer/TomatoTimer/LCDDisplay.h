@@ -23,7 +23,24 @@ public :
         return displayGroupBox_;
     }
 
-protected slots :
+    void timer_start()
+    {
+        if (timer_.get()) {
+            timer_->start(1000);
+        }
+    }
+
+    void timer_stop()
+    {
+        if (timer_.get()) {
+            timer_->stop();
+        }
+    }
+
+signals:
+    void timer_end();
+
+public slots:
     virtual void displaySlot() = 0;
 
 protected :

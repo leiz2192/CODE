@@ -23,9 +23,11 @@ public:
 
 private slots:
     void timeslots();
+    void exitslots();
+    
     void workslots();
     void restslots();
-    void exitslots();
+    void cancelslots();
 
 private:
     std::shared_ptr<LCDDisplay> timeDisplay_;
@@ -36,11 +38,15 @@ private:
 
     std::shared_ptr<QHBoxLayout> mainLayout_;
     std::shared_ptr<QMenuBar> menuBar_;
+
     std::shared_ptr<QMenu> helpMenu_;
     std::shared_ptr<QAction> timeAct_;
+    std::shared_ptr<QAction> exitAct_;
+
+    std::shared_ptr<QMenu> tomatoMenu_;
     std::shared_ptr<QAction> workAct_;
     std::shared_ptr<QAction> restAct_;
-    std::shared_ptr<QAction> exitAct_;
+    std::shared_ptr<QAction> cancelAct_;
 };
 
 #endif  //__TOMATOTIMEPIECE_H__

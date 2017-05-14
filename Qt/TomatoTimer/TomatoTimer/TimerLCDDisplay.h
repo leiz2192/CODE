@@ -13,11 +13,12 @@ public:
 
     virtual void initialize();
 
-private slots:
+public slots:
     virtual void displaySlot();
 
 private:
-    unsigned int timecnt_;
+    int timecnt_;
+    int seed_;
 };
 
 #endif  //__WORKLCDDISPLAY_H__
